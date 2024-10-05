@@ -31,6 +31,11 @@ public class AccountController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/balance")
+    public Double getBalance(@RequestParam(required = false) List<Long> accountIds) {
+        return accountService.getTotalBalance(accountIds);
+    }
+
     // Other account-related endpoints...
 }
 

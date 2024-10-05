@@ -17,12 +17,24 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+    public Optional<Account> getMainAccount(){
+        return accountRepository.getMainAccount();
+    }
+
     public List<Account> getAllAccounts() {
         return accountRepository.findAll();
     }
 
     public Optional<Account> getAccountById(Long id) {
         return accountRepository.findById(id);
+    }
+
+    public Double getTotalBalance(List<Long> accountIds) {
+        if (accountIds == null || accountIds.isEmpty()) {
+            return accountRepository.getTotalBalance(null);  // Sum all accounts
+        } else {
+            return accountRepository.getTotalBalance(accountIds);  // Sum specific accounts
+        }
     }
 
     // Other account-related methods...

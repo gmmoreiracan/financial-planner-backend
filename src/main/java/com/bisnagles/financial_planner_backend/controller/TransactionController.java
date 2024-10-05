@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -17,17 +18,12 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
-    @Autowired
-    private AccountService accountService;
-
     @PostMapping
     public Transaction createTransaction(@org.jetbrains.annotations.NotNull @RequestBody TransactionRequestDTO transactionRequestDTO) {
-        // Fetch the account using accountId from the DTO
-        Account account = accountService.getAccountById(transactionRequestDTO.getAccountId())
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+        // Fetch the account using accountId from the DT
 
         // Call the service to create a Transaction with the associated Account
-        return transactionService.createTransaction(transactionRequestDTO, account);
+        return transactionService.createTransaction(transactionRequestDTO);
     }
 
     @GetMapping

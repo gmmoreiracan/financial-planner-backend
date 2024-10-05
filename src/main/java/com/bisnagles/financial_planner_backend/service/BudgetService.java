@@ -1,10 +1,16 @@
 package com.bisnagles.financial_planner_backend.service;
 
+import com.bisnagles.financial_planner_backend.dto.BudgetRequestDTO;
+import com.bisnagles.financial_planner_backend.dto.BudgetResponse;
 import com.bisnagles.financial_planner_backend.model.Budget;
+import com.bisnagles.financial_planner_backend.model.Category;
 import com.bisnagles.financial_planner_backend.repository.BudgetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,8 +19,72 @@ public class BudgetService {
     @Autowired
     private BudgetRepository budgetRepository;
 
-    public Budget createBudget(Budget budget) {
+    @Autowired
+    private CategoryService categoryService;
+
+    public Budget createBudget(BudgetRequestDTO budgetRequestDTO) {
+        String requestCategory = budgetRequestDTO.getCategory();
+        if(requestCategory.isEmpty()){
+            requestCategory = "PENDING";
+        }
+
+        Optional<Category> category = categoryService.getOrCreateCategoryByName(requestCategory);
+
+        if(category.isEmpty()){
+            throw new DataRetrievalFailureException("No categories exist in the database");
+        }
+
+        Budget budget = new Budget();
+        budget.setCategory(category.get());
+        budget.setAllocatedAmount(budgetRequestDTO.getAllocatedAmount());
+        budget.setSpentAmount(budgetRequestDTO.getSpentAmount());
+
         return budgetRepository.save(budget);
+    }
+
+    public Budget updateBudget(Budget budget){
+        return budgetRepository.save(budget);
+    }
+
+    public Optional<Budget> getBudgetForDate(String categoryName, LocalDate date) {
+        Optional<Category> categoryOpt = categoryService.getCategoryByName(categoryName);
+
+        if (categoryOpt.isEmpty()) {
+            // Handle case when category is not found (return an error or empty response)
+            return Optional.empty();
+        }
+
+        return budgetRepository.findCurrentBudgetByCategoryId(categoryOpt.get().getId(), date);
+    }
+
+    public Optional<Budget> getCurrentBudget(String categoryName) {
+        LocalDate now = LocalDate.now();
+        return getBudgetForDate(categoryName, now);
+    }
+
+    // Get the previous budget for a category
+    public Optional<Budget> getPreviousBudget(String categoryName) {
+        Optional<Category> categoryOpt = categoryService.getCategoryByName(categoryName);
+
+        if (categoryOpt.isEmpty()) {
+            // Handle case when category is not found (return an error or empty response)
+            return Optional.empty();
+        }
+
+        LocalDate now = LocalDate.now();
+        return budgetRepository.findPreviousBudgetByCategoryId(categoryOpt.get().getId(), now);
+    }
+
+    // Fetch budgets for a specific category by its ID or name
+    public BudgetResponse getBudgetsForCategory(String categoryName) {
+        Optional<Budget> currentBudget = getCurrentBudget(categoryName);
+        Optional<Budget> previousBudget = getPreviousBudget(categoryName);
+
+        BudgetResponse response = new BudgetResponse();
+        currentBudget.ifPresent(response::setCurrentBudget);
+        previousBudget.ifPresent(response::setPreviousBudget);
+
+        return response;
     }
 
     public List<Budget> getAllBudgets() {

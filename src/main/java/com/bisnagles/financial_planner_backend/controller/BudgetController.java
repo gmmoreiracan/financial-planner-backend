@@ -1,5 +1,6 @@
 package com.bisnagles.financial_planner_backend.controller;
 
+import com.bisnagles.financial_planner_backend.dto.BudgetRequestDTO;
 import com.bisnagles.financial_planner_backend.dto.BudgetSimplifiedResponseDTO;
 import com.bisnagles.financial_planner_backend.model.Budget;
 import com.bisnagles.financial_planner_backend.service.BudgetService;
@@ -17,7 +18,7 @@ public class BudgetController {
     private BudgetService budgetService;
 
     @PostMapping
-    public Budget createBudget(@RequestBody Budget budget) {
+    public Budget createBudget(@RequestBody BudgetRequestDTO budget) {
         return budgetService.createBudget(budget);
     }
 
@@ -29,7 +30,7 @@ public class BudgetController {
     @GetMapping("/simplified")
     public  List<BudgetSimplifiedResponseDTO> getSimplifiedBudgets(){
         return budgetService.getAllBudgets().stream()
-                .map(budget -> new BudgetSimplifiedResponseDTO(budget.getCategory(), budget.getAllocatedAmount()))
+                .map(budget -> new BudgetSimplifiedResponseDTO(budget.getCategory().getName(), budget.getAllocatedAmount()))
                 .collect(Collectors.toList());
     }
 
@@ -39,6 +40,14 @@ public class BudgetController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/get/category")
+    public ResponseEntity<Budget> getCurrentBudget(@RequestParam(name = "category") String category) {
+        return budgetService.getCurrentBudget(category)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 
     // Other account-related endpoints...
 }

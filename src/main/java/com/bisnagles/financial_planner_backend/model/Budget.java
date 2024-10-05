@@ -1,8 +1,11 @@
 package com.bisnagles.financial_planner_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDate;
 
 // Budget.java
 @Setter
@@ -12,9 +15,17 @@ public class Budget {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String category;
-    private double allocatedAmount;
-    private double spentAmount;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id") // This will create a foreign key in the Transaction table
+    @JsonIgnore
+    private Category category;
+
+    private Double allocatedAmount;
+    private Double spentAmount;
+
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     // Getters and setters
 }

@@ -9,8 +9,9 @@ import java.time.LocalDate;
 @Setter
 public class TransactionRequestDTO {
     private String description;
+    private String merchant;
     private double amount;
     private LocalDate date;
-    private String type; // income, expense, etc.
+    private String category; // income, expense, etc.
     private Long accountId;
 }

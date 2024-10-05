@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import  jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
 
 import java.time.LocalDate;
 
@@ -16,11 +18,19 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String description;
-    private double amount;
+    private Double amount;
     private LocalDate date;
     private String type; // income, expense, etc.
+
+    @ManyToOne
+    @JoinColumn(name = "category_id") // This will create a foreign key in the Transaction table
+    private Category category;
+
+    @ManyToOne
+    @JoinColumn(name = "merchant_id") // This will create a foreign key in the Transaction table
+    private Merchant merchant;
+
     @ManyToOne
     @JoinColumn(name = "account_id")
-    @JsonIgnore
     private Account account;
 }

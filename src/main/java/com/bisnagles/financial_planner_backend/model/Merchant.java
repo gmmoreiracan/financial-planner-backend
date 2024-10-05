@@ -4,28 +4,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.relational.core.mapping.Table;
+import java.util.Set;
 
-import java.time.LocalDate;
-
-// Bill.java
 @Setter
 @Getter
 @Entity
-public class Bill {
+public class Merchant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    private double amount;
-    private LocalDate dueDate;
-    private boolean paid;
 
-    @ManyToOne
-    @JoinColumn(name = "account_id")
+    @OneToMany(mappedBy = "merchant")
     @JsonIgnore
-    private Account account;
-
-    // Getters and setters
+    private Set<MerchantCategory> categories;
 }
-
