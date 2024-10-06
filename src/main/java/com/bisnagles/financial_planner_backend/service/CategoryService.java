@@ -8,7 +8,6 @@ import com.bisnagles.financial_planner_backend.repository.MerchantCategoryReposi
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 

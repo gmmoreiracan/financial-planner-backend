@@ -53,26 +53,40 @@ public class TransactionService {
 
         if(category.isPresent() && merchant.isPresent()){
             categoryService.addMerchant(category.get(),merchant.get());
+
+            updateBudgetForTransaction(transaction);
         }
 
         transaction.setDescription(transactionRequestDTO.getDescription());
         transaction.setAccount(account);  // Set the associated account
 
-        return transactionRepository.save(transaction);
+        Transaction savedTransaction = transactionRepository.save(transaction);
+
+        updateBudgetForTransaction(savedTransaction);
+
+        return savedTransaction;
     }
 
     public List<Transaction> getAllTransactions() {
         return transactionRepository.findAll();
     }
 
-
-
     public Optional<Transaction> getTransactionById(Long id) {
         return transactionRepository.findById(id);
     }
 
+    public Transaction updateTransaction(Transaction transaction) {
+        // Save the updated transaction
+        Transaction updatedTransaction = transactionRepository.save(transaction);
+
+        // Update the corresponding budget's spentAmount
+        Optional<Budget> updatedBudget = updateBudgetForTransaction(updatedTransaction);
+
+        return updatedTransaction;
+    }
+
     // Method to update the budget when a transaction is created/updated
-    private void updateBudgetForTransaction(Transaction transaction) {
+    private Optional<Budget> updateBudgetForTransaction(Transaction transaction) {
         // Get the category for the transaction
         Category category = transaction.getCategory();
         LocalDate date = transaction.getDate();
@@ -87,8 +101,10 @@ public class TransactionService {
             budget.setSpentAmount(budget.getSpentAmount() - transaction.getAmount());
 
             // Save the updated budget
-            budgetService.updateBudget(budget);
+            return Optional.of(budgetService.updateBudget(budget));
         }
+
+        return Optional.empty();
     }
 
     // Other account-related methods...

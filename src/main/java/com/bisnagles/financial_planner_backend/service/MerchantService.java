@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class MerchantService {
@@ -46,7 +45,7 @@ public class MerchantService {
 
         // Step 4: Generate all possible combinations starting from index "start"
         StringBuilder combination = new StringBuilder();
-        List<Merchant> result = Collections.emptyList();
+        List<Merchant> result;
 
         for (int i = start; i < nameParts.length; i++) {
             // Build combination from parts (i.e., "No", then "No Frills", then "No Frills #1234")
@@ -75,7 +74,7 @@ public class MerchantService {
 
     public Optional<Merchant> getOrCreateMerchantByName(String name) {
         if(name.isEmpty()){
-            return null;
+            return Optional.empty();
         }
 
         List<Merchant> merchantList = getMerchantsBySimilarName(name);

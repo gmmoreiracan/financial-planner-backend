@@ -1,7 +1,6 @@
 package com.bisnagles.financial_planner_backend.config;
 
 import io.sentry.Sentry;
-import io.sentry.SentryOptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
