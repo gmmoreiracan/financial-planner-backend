@@ -25,7 +25,7 @@ steps:
 # Check if the remote 'github' already exists, and update it if necessary
 - script: |
     git remote remove github || true   # Remove the existing remote, if present
-    git remote add github https://$(GITHUB_TOKEN)@github.com/<your-github-username>/<your-repo>.git
+    git remote add github https://$(GITHUB_TOKEN)@github.com/gmmoreiracan/financial-planner-backend.git
   displayName: 'Add/Update GitHub remote'
 
 - script: |
