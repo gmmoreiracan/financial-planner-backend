@@ -9,33 +9,67 @@ trigger:
 pool:
   name: 'Default'
 
-steps:
-- task: Maven@4
-  inputs:
-    jdkDirectory: jdk21
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.21'
-    jdkArchitectureOption: 'x64'  # Changed from x64 to ARM64
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+jobs:
+- job: BuildAndTest
+  steps:
+  - task: Maven@4
+    inputs:
+      jdkDirectory: jdk21
+      mavenPomFile: 'pom.xml'
+      mavenOptions: '-Xmx3072m'
+      javaHomeOption: 'JDKVersion'
+      jdkVersionOption: '1.21'
+      jdkArchitectureOption: 'x64'  # Changed from x64 to ARM64
+      publishJUnitResults: true
+      testResultsFiles: '**/surefire-reports/TEST-*.xml'
+      goals: 'package'
 
-# - script: |
-#     ls -la .
-#     git clone https://github.com/gmmoreiracan/financial-planner-backend.git
-#     ls -la .
-#     git config --global user.name "Gabriel Moreira"
-#     git checkout master
-#     git add .
-#     git commit -m "New changes from ADO"
-#     git push https://$(GITHUB_TOKEN)@github.com/gmmoreiracan/financial-planner-backend.git HEAD:master
-#   displayName: 'Sync changes to GitHub'
+  # Save the JAR file as an artifact
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(System.DefaultWorkingDirectory)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar'
+      ArtifactName: 'financial-planner-backend'
+      publishLocation: 'Container'
 
-# Save the JAR file as an artifact
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(System.DefaultWorkingDirectory)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar'
-    ArtifactName: 'financial-planner-backend'
-    publishLocation: 'Container'
+- job: DeployToHeroku
+  displayName: 'Deploy to Heroku'
+  dependsOn: BuildAndTest
+  condition: succeeded()
+
+  steps:
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: |
+        # Check if Heroku CLI is installed
+        if ! command -v heroku &> /dev/null
+        then
+            echo "Heroku CLI not found, installing..."
+            
+            # Install Heroku CLI based on the OS
+            if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+                curl https://cli-assets.heroku.com/install.sh | sh
+            elif [[ "$OSTYPE" == "darwin"* ]]; then
+                # macOS installation (Homebrew)
+                brew tap heroku/brew && brew install heroku
+            else
+                echo "Unsupported OS for automatic Heroku installation"
+                exit 1
+            fi
+        else
+            echo "Heroku CLI already installed."
+        fi
+
+        # Check if already logged in
+        if ! heroku auth:whoami &> /dev/null
+        then
+            echo "Not logged in, logging in..."
+            heroku auth:token
+        else
+            echo "Already logged in to Heroku."
+        fi
+    displayName: 'Install and Authenticate Heroku CLI'
+
+  - script: |
+      heroku deploy:jar $(System.DefaultWorkingDirectory)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar --app personal-financial-tracker
+    displayName: 'Deploy to Heroku'
