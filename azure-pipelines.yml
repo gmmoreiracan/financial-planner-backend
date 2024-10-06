@@ -30,7 +30,19 @@ jobs:
       PathtoPublish: '$(System.DefaultWorkingDirectory)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar'
       ArtifactName: 'financial-planner-backend-jar'
       publishLocation: 'Container'
-
+- job: PushChangesToGitHub
+  steps:
+  - checkout: self
+  - script: |
+      git config user.name "Gabriel"
+      git config user.email "gmmoreira.can@gmail.com"
+      git remote add github https://${GITHUB_TOKEN}:gmmoreiracan@github.com/gmmoreiracan/financial-planner-backend.git
+      git pull github master || true
+      git add .
+      git commit -m "Automated sync from Azure Pipeline" || echo "No changes to commit"
+      git push github master
+    displayName: 'Sync Changes to GitHub'
+  
 - job: DeployToHeroku
   displayName: 'Deploy to Heroku'
   dependsOn: BuildAndTest
