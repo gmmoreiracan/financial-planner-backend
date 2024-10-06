@@ -73,7 +73,7 @@ jobs:
                        SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
                        SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL} \
                        SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME} \
-                       --app your-heroku-app-name
+                       --app ${HEROKU_APP_NAME}
     displayName: 'Install and Authenticate Heroku CLI'
 
   - task: DownloadPipelineArtifact@2
