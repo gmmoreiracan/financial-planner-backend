@@ -45,6 +45,7 @@ steps:
 
 - task: Maven@4
   inputs:
+    jdkDirectory: jdk21
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
     javaHomeOption: 'JDKVersion'
