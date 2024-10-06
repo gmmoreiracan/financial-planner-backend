@@ -34,7 +34,7 @@ steps:
     git checkout master
     git add .
     git commit -m "New changes from ADO"
-    git push https://$(GITHUB_TOKEN)@github.com/gmmoreiracan/financial-planner-backend.git
+    git push https://$(GITHUB_TOKEN)@github.com/gmmoreiracan/financial-planner-backend.git HEAD:master
   displayName: 'Sync changes to GitHub'
 
 # Save the JAR file as an artifact
