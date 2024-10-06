@@ -28,7 +28,7 @@ jobs:
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: '$(System.DefaultWorkingDirectory)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar'
-      ArtifactName: 'financial-planner-backend'
+      ArtifactName: 'financial-planner-backend-jar'
       publishLocation: 'Container'
 
 - job: DeployToHeroku
@@ -68,8 +68,24 @@ jobs:
         else
             echo "Already logged in to Heroku."
         fi
+
+        heroku config:set JWT_SECRET=${JWT_SECRET} \
+                       SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
+                       SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL} \
+                       SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME} \
+                       --app your-heroku-app-name
     displayName: 'Install and Authenticate Heroku CLI'
 
-  - script: |
-      heroku deploy:jar $(System.DefaultWorkingDirectory)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar --app personal-financial-tracker
-    displayName: 'Deploy to Heroku'
+  - task: DownloadPipelineArtifact@2
+    inputs:
+      artifactName: 'financial-planner-backend-jar'
+      targetPath: '$(Pipeline.Workspace)/target'
+
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: |
+        heroku deploy:jar $(Pipeline.Workspace)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar --app ${HEROKU_APP_NAME}
+    displayName: 'Deploy JAR to Heroku'
+    env:
+      HEROKU_API_KEY: ${HEROKU_TOKEN}  # This should be set in your pipeline variables
