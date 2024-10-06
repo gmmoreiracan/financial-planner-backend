@@ -36,10 +36,6 @@ steps:
 # Save the JAR file as an artifact
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: 'target/*.jar'
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/target/financial-planner-backend-*.jar'
     ArtifactName: 'financial-planner-backend'
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '**/surefire-reports/TEST-*.xml'
-    ArtifactName: 'financial-planner-testresults'
+    publishLocation: 'Container'
