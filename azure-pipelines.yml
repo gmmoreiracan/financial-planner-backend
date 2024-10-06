@@ -87,5 +87,3 @@ jobs:
       script: |
         heroku deploy:jar $(Pipeline.Workspace)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar --app ${HEROKU_APP_NAME}
     displayName: 'Deploy JAR to Heroku'
-    env:
-      HEROKU_API_KEY: ${HEROKU_TOKEN}  # This should be set in your pipeline variables
