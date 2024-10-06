@@ -1,0 +1,42 @@
+# Maven
+# Build your Java project and run tests with Apache Maven.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+# Step 1: Install JDK 21 using PowerShell
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      sudo apt update
+      sudo apt install -y openjdk-21-jdk
+      java -version  # Confirm JDK installation
+
+# Step 2: Set up the environment variable for Java
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      echo "##vso[task.setvariable variable=JAVA_HOME]$(dirname $(dirname $(readlink -f $(which java))))"
+      echo "Java is set to: $JAVA_HOME"
+
+# Step 3: Check out the code
+- checkout: self
+
+- task: Maven@4
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.11'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    goals: 'package'
