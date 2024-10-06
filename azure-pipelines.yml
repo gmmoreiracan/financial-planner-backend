@@ -23,9 +23,9 @@ steps:
     goals: 'package'
 
 - script: |
-    git config --global user.email "youremail@example.com"
-    git config --global user.name "YourName"
-    git remote add github https://$(GITHUB_TOKEN)@github.com/gmmoreiracan/financial-planner-backend.git
+    # git config --global user.email "youremail@example.com"
+    # git config --global user.name "YourName"
+    # git remote add github https://$(GITHUB_TOKEN)@github.com/gmmoreiracan/financial-planner-backend.git
     git checkout $(Build.SourceBranch)
     git push github $(Build.SourceBranch)
   displayName: 'Sync changes to GitHub'
