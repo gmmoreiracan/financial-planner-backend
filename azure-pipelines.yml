@@ -10,30 +10,6 @@ pool:
   name: 'Default'
 
 steps:
-# Step 1: Install JDK 21 using PowerShell
-- task: PowerShell@2
-  inputs:
-    targetType: 'inline'
-    script: |
-      sudo apt update
-      sudo apt install -y openjdk-21-jdk
-      java -version  # Confirm JDK installation
-
-# Step 2: Set up the environment variable for Java
-- task: PowerShell@2
-  inputs:
-    targetType: 'inline'
-    script: |
-      echo "##vso[task.setvariable variable=JAVA_HOME]$(dirname $(dirname $(readlink -f $(which java))))"
-      echo "Java is set to: $JAVA_HOME"
-
-# Step 3: Check out the code
-- checkout: self
-
-- bash: 'wget --no-check-certificate -c --header "Cookie: oraclelicense=accept-securebackup-cookie" https://download.oracle.com/java/21/latest/jdk-21_macos-aarch64_bin.tar.gz '
-  displayName: 'Bash Script'
-
-
 - task: Maven@4
   inputs:
     jdkDirectory: jdk21
@@ -41,7 +17,7 @@ steps:
     mavenOptions: '-Xmx3072m'
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.21'
-    jdkArchitectureOption: 'ARM'  # Changed from x64 to ARM64
+    jdkArchitectureOption: 'x64'  # Changed from x64 to ARM64
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
