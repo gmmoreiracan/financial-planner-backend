@@ -21,3 +21,17 @@ steps:
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
+
+- script: |
+    git config --global user.email "youremail@example.com"
+    git config --global user.name "YourName"
+    git remote add github https://$(GITHUB_TOKEN)@github.com/<your-github-username>/<your-repo>.git
+    git checkout $(Build.SourceBranch)
+    git push github $(Build.SourceBranch)
+  displayName: 'Sync changes to GitHub'
+
+# Save the JAR file as an artifact
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: 'target/*.jar'
+    ArtifactName: 'financial-planner-backend'
