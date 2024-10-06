@@ -79,6 +79,19 @@ public class TransactionService {
         // Save the updated transaction
         Transaction updatedTransaction = transactionRepository.save(transaction);
 
+        Category category = updatedTransaction.getCategory();
+
+        Optional<Budget> budget = Optional.empty();
+
+        if(category != null && !category.getName().isEmpty()){
+            budget = budgetService.getBudgetForDate(category.getName(), LocalDate.now());
+        }
+
+
+        if(budget.isEmpty()){
+            return transaction;
+        }
+
         // Update the corresponding budget's spentAmount
         Optional<Budget> updatedBudget = updateBudgetForTransaction(updatedTransaction);
 
