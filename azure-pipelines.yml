@@ -34,6 +34,8 @@ jobs:
   steps:
   - checkout: self
   - script: |
+      git pull origin
+      git checkout master
       git config user.name "Gabriel"
       git config user.email "gmmoreira.can@gmail.com"
       # Set your remote name and URL
