@@ -27,8 +27,8 @@ jobs:
   # Save the JAR file as an artifact
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: '$(System.DefaultWorkingDirectory)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar'
-      ArtifactName: 'financial-planner-backend-jar'
+      PathtoPublish: '$(System.DefaultWorkingDirectory)/target'
+      ArtifactName: 'financial-planner-backend-target'
       publishLocation: 'Container'
 - job: PushChangesToGitHub
   steps:
@@ -116,12 +116,12 @@ jobs:
 
   - task: DownloadPipelineArtifact@2
     inputs:
-      artifactName: 'financial-planner-backend-jar'
+      artifactName: 'financial-planner-backend-target'
       targetPath: '$(Pipeline.Workspace)/target'
 
   - task: Bash@3
     inputs:
       targetType: 'inline'
       script: |
-        heroku deploy:jar $(Pipeline.Workspace)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar --app ${HEROKU_APP_NAME}
+        heroku deploy:jar --jar '$(Pipeline.Workspace)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar' --jdk-21 --app ${HEROKU_APP_NAME}
     displayName: 'Deploy JAR to Heroku'
