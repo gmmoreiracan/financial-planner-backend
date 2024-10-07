@@ -1,0 +1,1 @@
+web: java -jar target/financial-planner-backend-0.0.1-SNAPSHOT.jar
