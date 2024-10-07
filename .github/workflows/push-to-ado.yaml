@@ -18,14 +18,12 @@ jobs:
 
       - name: Add ADO Remote
         run: |
-          git pull origin master
           git remote add ado https://${{ secrets.ADO_USERNAME }}:${{ secrets.ADO_PAT }}@dev.azure.com/gmmoreiracan/financial-planning/_git/financial-planning
-          git fetch ado  # Fetch the latest from ADO
-          
-      - name: Merge ADO changes
+        
+      - name: Merge and push ADO changes
         run: |
-          git pull ado master --ff || echo "No changes from ADO to merge"
-
-      - name: Push changes to ADO
-        run: |
+          git pull origin master
+          git rebase origin/master
+          git fetch ado master
+          git merge ado/master -m "Merging ADO"
           git push ado master
