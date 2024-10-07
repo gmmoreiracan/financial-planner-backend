@@ -25,4 +25,4 @@ jobs:
 
       - name: Push changes to Azure DevOps
         run: |
-          git push ado HEAD:main  # Replace 'main' with your target branch in ADO
+          git push ado HEAD:master  # Replace 'main' with your target branch in ADO
