@@ -36,12 +36,39 @@ jobs:
   - script: |
       git config user.name "Gabriel"
       git config user.email "gmmoreira.can@gmail.com"
-      git remote add github https://${GITHUB_TOKEN}:gmmoreiracan@github.com/gmmoreiracan/financial-planner-backend.git
-      git pull github master || true
+      # Set your remote name and URL
+      REMOTE_NAME="github"
+      REMOTE_URL="https://${GITHUB_TOKEN}:gmmoreiracan@github.com/gmmoreiracan/financial-planner-backend.git"
+
+      # Check if the remote already exists
+      if git remote get-url $REMOTE_NAME &> /dev/null; then
+          echo "Remote '$REMOTE_NAME' already exists."
+      else
+          echo "Adding remote '$REMOTE_NAME'."
+          git remote add $REMOTE_NAME $REMOTE_URL
+      fi
+
+      # Check if we are on a branch
+      CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+      if [ "$CURRENT_BRANCH" == "HEAD" ]; then
+          echo "We are in a detached HEAD state. Checking out to master."
+          git checkout master  # Replace with your desired branch
+      fi
+
+      # Attempt to pull changes from the remote repository
+      git pull github master --rebase || {
+          echo "Failed to pull changes. Please check for divergence."
+          exit 1
+      }
+
       git add .
       git commit -m "Automated sync from Azure Pipeline" || echo "No changes to commit"
       git push github master
     displayName: 'Sync Changes to GitHub'
+  - script: |
+      
+  displayName: 'Sync with GitHub'
   
 - job: DeployToHeroku
   displayName: 'Deploy to Heroku'
