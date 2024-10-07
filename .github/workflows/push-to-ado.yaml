@@ -26,7 +26,8 @@ jobs:
         run: |
           git checkout master
           git pull ado master --rebase || echo "No changes to merge"  # Use --rebase to avoid merge commits
-   
+          git merge master -m "Automated commit from Github"
+      
       - name: Check for conflicts
         run: |
           if ! git diff --quiet; then
