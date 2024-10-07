@@ -1,0 +1,28 @@
+name: Sync to Azure DevOps
+
+on:
+  push:
+    branches:
+      - main  # Change to your branch if needed
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "Gabriel"
+          git config --global user.email "gmmoreira.eng@gmail.com"  # Replace with your email
+
+      - name: Add ADO Remote
+        run: |
+          git remote add ado https://$(ADO_USERNAME):$(ADO_PAT)@gmmoreiracan@dev.azure.com/gmmoreiracan/financial-planning/_git/financial-planning
+          git fetch ado  # Fetch the latest from ADO
+
+      - name: Push changes to Azure DevOps
+        run: |
+          git push ado HEAD:main  # Replace 'main' with your target branch in ADO
