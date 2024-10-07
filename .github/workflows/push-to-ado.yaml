@@ -25,5 +25,5 @@ jobs:
           git pull origin master
           git rebase origin/master
           git fetch ado master
-          git merge ado/master -m "Merging ADO"
+          git merge ado/master --allow-unrelated-histories -m "Merging ADO"
           git push ado master
