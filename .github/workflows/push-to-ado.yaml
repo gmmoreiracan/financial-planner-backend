@@ -22,9 +22,9 @@ jobs:
           git fetch ado  # Fetch the latest from ADO
 
 
-      - name: Rebase ADO changes onto local branch
+      - name: Merge ADO changes
         run: |
-          git rebase ado/master || echo "No changes from ADO to rebase"
+          git merge ado/master || echo "No changes from ADO to merge"
 
       - name: Push changes to ADO
         run: |
