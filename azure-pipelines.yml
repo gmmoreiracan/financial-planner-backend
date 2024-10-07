@@ -34,7 +34,7 @@ jobs:
   steps:
   - checkout: self
   - script: |
-      git pull origin
+      git pull origin master
       git checkout master
       git config user.name "Gabriel"
       git config user.email "gmmoreira.can@gmail.com"
@@ -68,9 +68,6 @@ jobs:
       git commit -m "Automated sync from Azure Pipeline" || echo "No changes to commit"
       git push github master
     displayName: 'Sync Changes to GitHub'
-  - script: |
-      
-  displayName: 'Sync with GitHub'
   
 - job: DeployToHeroku
   displayName: 'Deploy to Heroku'
