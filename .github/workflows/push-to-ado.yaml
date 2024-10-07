@@ -20,7 +20,7 @@ jobs:
 
       - name: Add ADO Remote
         run: |
-          git remote add ado https://$(ADO_USERNAME):$(ADO_PAT)@gmmoreiracan@dev.azure.com/gmmoreiracan/financial-planning/_git/financial-planning
+          git remote add ado https://$(ADO_USERNAME):$(ADO_PAT)@dev.azure.com/gmmoreiracan/financial-planning/_git/financial-planning
           git fetch ado  # Fetch the latest from ADO
 
       - name: Push changes to Azure DevOps
