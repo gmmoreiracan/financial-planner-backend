@@ -112,16 +112,27 @@ jobs:
                        SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL} \
                        SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME} \
                        --app ${HEROKU_APP_NAME}
+        
+        heroku git:remote
+
+        git pull heroku master --rebase || {
+            echo "Failed to pull changes. Please check for divergence."
+            exit 1
+        }
+
+        git add .
+        git commit -m "Automated sync from Azure Pipeline" || echo "No changes to commit"
+        git push heroku master
     displayName: 'Install and Authenticate Heroku CLI'
 
-  - task: DownloadPipelineArtifact@2
-    inputs:
-      artifactName: 'financial-planner-backend-target'
-      targetPath: '$(Pipeline.Workspace)/target'
+  # - task: DownloadPipelineArtifact@2
+  #   inputs:
+  #     artifactName: 'financial-planner-backend-target'
+  #     targetPath: '$(Pipeline.Workspace)/target'
 
-  - task: Bash@3
-    inputs:
-      targetType: 'inline'
-      script: |
-        heroku deploy:jar --jar '$(Pipeline.Workspace)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar' --jdk-21 --app ${HEROKU_APP_NAME}
-    displayName: 'Deploy JAR to Heroku'
+  # - task: Bash@3
+  #   inputs:
+  #     targetType: 'inline'
+  #     script: |
+  #       heroku deploy:jar --jar '$(Pipeline.Workspace)/target/financial-planner-backend-0.0.1-SNAPSHOT.jar' --jdk-21 --app ${HEROKU_APP_NAME}
+  #   displayName: 'Deploy JAR to Heroku'
