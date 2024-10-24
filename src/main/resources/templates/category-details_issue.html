@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+ <title>Transaction Details</title>
+</head>
+<body>
+<section layout:fragment="content">
+ <section class="section">
+  <div class="container">
+   <h1 class="title is-4">Category: [[${categoryName}]]</h1>
+   <form th:object="${transaction}" th:action="@{/transaction/update}" method="post">
+   <table class="table is-fullwidth is-striped is-hoverable">
+    <thead>
+    <tr>
+     <th>Amount</th>
+     <th>Merchant</th>
+     <th>Category</th>
+     <th>Date</th>
+     <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="transaction : ${transactions}">
+     <td>
+      <input class="input" type="text" th:field="*{amount}" value="" th:value="${transaction.amount}">
+     </td>
+     <td>
+      <input class="input" type="text" th:field="*{merchant}" value="" th:value="${transaction.merchant}">
+     </td>
+     <td>
+      <select class="input" th:field="*{category.id}">
+       <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}" th:selected="${cat.id == transaction.category.id}"></option>
+      </select>
+     </td>
+     <td>
+      <input class="input" type="date" th:field="*{date}" th:value="${transaction.date}">
+     </td>
+     <td>
+      <input type="hidden" th:field="*{id}" th:value="${transaction.id}" />
+      <button class="button is-primary" type="submit">Update</button>
+     </td>
+    </tr>
+    </tbody>
+   </table>
+ </form>
+
+   <div class="buttons">
+    <a href="/" class="button is-link">Back to Categories</a>
+   </div>
+  </div>
+ </section>
+</section>
+<!-- Bootstrap JS and dependencies -->
+</body>
+</html>

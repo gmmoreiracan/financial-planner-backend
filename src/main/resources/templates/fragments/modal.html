@@ -1,0 +1,99 @@
+<!-- modal.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="modal">
+  <!-- Modal -->
+  <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="transactionModalLabel">Transaction</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="transactionForm" th:action="@{/ui/transaction/update}" th:object="${transaction}" method="post">
+            <div class="mb-3">
+              <label for="date" class="form-label">Date</label>
+              <input type="date" class="form-control" id="date" th:field="*{date}" required>
+            </div>
+            <div class="mb-3">
+              <label for="amount" class="form-label">Amount</label>
+              <input type="number" step=".01" class="form-control" id="amount" th:field="*{amount}" required>
+            </div>
+            <div class="mb-3">
+              <label for="merchant" class="form-label">Merchant</label>
+              <input type="text" class="form-control" id="merchant" th:field="*{merchant}" required>
+            </div>
+            <div class="mb-3">
+              <label for="category" class="form-label">Category</label>
+              <select class="form-select" id="category" th:field="*{category}" required>
+                <option th:each="cat : ${categories}" th:value="${cat.name}" th:text="${cat.name}"></option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea class="form-control" id="description" th:field="*{description}"></textarea>
+            </div>
+            <div class="invisible">
+              <label for="id" class="form-label">Id</label>
+              <input class="form-control" id="id" th:field="*{id}"></input>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary" form="transactionForm">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Code -->
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      let transactionId = "";
+      var transactionModal = document.getElementById('transactionModal');
+      transactionModal.addEventListener('show.bs.modal', function(event) {
+        var button = event.relatedTarget; // Button that triggered the modal
+        transactionId = button.getAttribute('data-transaction-id'); // Extract transaction ID if available
+
+        if (transactionId) {
+          // Edit existing transaction, load data into modal form
+          fetch(`/api/transactions/${transactionId}`)
+            .then(response => response.json())
+            .then(data => {
+              document.getElementById('date').value = data.date;
+              document.getElementById('id').value = data.id;
+              document.getElementById('amount').value = data.amount;
+              document.getElementById('merchant').value = data.merchant.name;
+              document.getElementById('category').value = data.category.name;
+              document.getElementById('description').value = data.description;
+            });
+        } else {
+          // New transaction, clear the modal form
+          document.getElementById('transactionForm').reset();
+        }
+      });
+
+      var transactionForm = document.getElementById('transactionForm');
+      transactionForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        var formData = new FormData(transactionForm);
+        var url = `/ui/transaction/${transactionId ? 'update' : 'create'}`;
+        var method = 'POST';
+
+        fetch(url, {
+          method: method,
+          body: formData
+        }).then(response => {
+          if (response.ok) {
+            location.reload(); // Reload the page after successful save
+          } else {
+            alert('Failed to save transaction');
+          }
+        });
+      });
+    });
+  </script>
+</div>
+</html>

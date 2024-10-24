@@ -1,9 +1,11 @@
 package com.bisnagles.financial_planner_backend.service;
 
 import com.bisnagles.financial_planner_backend.dto.TransactionRequestDTO;
+import com.bisnagles.financial_planner_backend.dto.TransactionSummaryDTO;
 import com.bisnagles.financial_planner_backend.model.*;
 import com.bisnagles.financial_planner_backend.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -27,6 +29,10 @@ public class TransactionService {
     @Autowired
     private BudgetService budgetService;
 
+    public void deleteTransaction(Long id){
+        transactionRepository.deleteById(id);
+    }
+
     public Transaction createTransaction(TransactionRequestDTO transactionRequestDTO) {
 
         Long accountId = transactionRequestDTO.getAccountId();
@@ -45,7 +51,8 @@ public class TransactionService {
 
         Optional<Merchant> merchant = merchantService.getOrCreateMerchantByName(transactionRequestDTO.getMerchant());
 
-        Transaction transaction = new Transaction();
+
+        Transaction transaction = transactionRepository.findByDateAndAmount(transactionRequestDTO.getDate(),transactionRequestDTO.getAmount()).orElseGet(Transaction::new);
         transaction.setAmount(transactionRequestDTO.getAmount());
         transaction.setDate(transactionRequestDTO.getDate());
         category.ifPresent(transaction::setCategory);
@@ -96,6 +103,17 @@ public class TransactionService {
         Optional<Budget> updatedBudget = updateBudgetForTransaction(updatedTransaction);
 
         return updatedTransaction;
+    }
+
+    public List<TransactionSummaryDTO> getTransactionSummaryForCurrentMonth() {
+        return transactionRepository.getTransactionSummaryForCurrentMonth();
+    }
+
+    public List<Transaction> getTransactionSummaryForCurrentMonthAndCategory(String categoryName, Integer month, Integer year) {
+        int finalYear = (year != null) ? year : LocalDate.now().getYear();
+        int finalMonth = (month != null) ? month : LocalDate.now().getMonthValue();
+
+        return transactionRepository.findByCategoryAndMonth(categoryName, finalMonth, finalYear);
     }
 
     // Method to update the budget when a transaction is created/updated

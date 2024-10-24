@@ -26,6 +26,10 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -36,6 +40,38 @@ import static org.springframework.security.oauth2.core.oidc.StandardClaimNames.P
 @SuppressWarnings("SpellCheckingInspection")
 @Configuration
 public class SecurityConfig {
+    @Autowired
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    @Bean
+    public SecurityFilterChain uiSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login").permitAll()
+                        .requestMatchers("/favicon.ico").permitAll()
+                        .requestMatchers("/ui/login").permitAll()
+                        .requestMatchers("/ui/**").hasRole("USER")
+                        .requestMatchers("/").hasRole("USER")
+                        .requestMatchers("/api/**").hasAnyRole("USER","ADMIN")
+                )
+                .formLogin(form -> form
+                        .loginPage("/login") // Specify the login page
+                        .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
+                        .defaultSuccessUrl("/") // Redirect here after successful login
+                        .permitAll() // Allow everyone to access the login page
+                )
+                .addFilterBefore(new JwtCookieFilter(), UsernamePasswordAuthenticationFilter.class)
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint(customAuthenticationEntryPoint) // Set the custom entry point
+                )
+                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF (typically for stateless APIs)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No sessions, stateless API
+                );
+
+        return http.build();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -44,16 +80,15 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login").permitAll()
 //                        .requestMatchers("/api/admin/create-admin-user").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")  // Only admins
-                        .requestMatchers("/api/**").hasRole("USER")    // Only users
-                        .anyRequest().authenticated()                      // Any other request requires authentication
-//                        .anyRequest().permitAll()
+                        .requestMatchers("/api/**").hasAnyRole("USER","ADMIN") // Only users
+                        .anyRequest().authenticated()
                 )
-                // Configure basic auth
+                .addFilterBefore(new JwtCookieFilter(), UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults())
                 // Configure Bearer token authentication
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
-                .exceptionHandling(exceptionHandling ->
-                        exceptionHandling.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))  // Return 401 for unauthenticated requests
+                .exceptionHandling(
+                        exceptionHandling -> exceptionHandling.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF (typically for stateless APIs)
                 .sessionManagement(session -> session

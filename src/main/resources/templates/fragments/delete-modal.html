@@ -1,0 +1,58 @@
+<!-- modal.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="delete-modal">
+  <!-- Modal -->
+  <div id="deleteModal" class="modal fade">
+    <div class="modal-dialog modal-confirm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="icon-box">
+            <i class="material-icons">&#xE5CD;</i>
+          </div>
+          <h4 class="modal-title">Are you sure?</h4>
+<!--          <button type="button" class="btn-close" data-bs-dismiss="deleteModal">&times;</button>-->
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Do you really want to delete this record? This process cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" id="deleteButton" class="btn btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Code -->
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      let transactionId = "";
+      var deleteModal = document.getElementById('deleteModal');
+      deleteModal.addEventListener('show.bs.modal', function(event) {
+        var button = event.relatedTarget; // Button that triggered the modal
+        transactionId = button.getAttribute('data-transaction-id'); // Extract transaction ID if available
+      });
+
+      var deleteButton = document.getElementById('deleteButton');
+      deleteButton.addEventListener('click', function(event) {
+        event.preventDefault();
+
+        var url = `/ui/transaction/delete/${transactionId}`;
+        var method = 'POST';
+
+        fetch(url, {
+          method: method
+        }).then(response => {
+          if (response.ok) {
+            location.reload(); // Reload the page after successful save
+          } else {
+            alert('Failed to save transaction');
+          }
+        });
+      });
+    });
+  </script>
+</div>
+</html>
