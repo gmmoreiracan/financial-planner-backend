@@ -4,7 +4,6 @@ import com.bisnagles.financial_planner_backend.dto.TransactionRequestDTO;
 import com.bisnagles.financial_planner_backend.dto.TransactionSummaryDTO;
 import com.bisnagles.financial_planner_backend.dto.TransactionUpdateDTO;
 import com.bisnagles.financial_planner_backend.model.Category;
-import com.bisnagles.financial_planner_backend.model.Merchant;
 import com.bisnagles.financial_planner_backend.model.Transaction;
 import com.bisnagles.financial_planner_backend.service.AuthService;
 import com.bisnagles.financial_planner_backend.service.CategoryService;
@@ -13,9 +12,12 @@ import com.bisnagles.financial_planner_backend.service.UIService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.servlet.http.Cookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +37,9 @@ public class UIController {
     @Autowired
     private UIService uiService;
 
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
+
     @GetMapping("/login")
     public String getLoginPage(Model model){
         return "login";
@@ -50,7 +55,7 @@ public class UIController {
         return "category-details";
     }
 
-    @GetMapping("/summary")
+    @RequestMapping("/summary")
     public String getMonthlyTransactionSummary(Model model) {
         List<TransactionSummaryDTO> summaries = transactionService.getTransactionSummaryForCurrentMonth();
         model.addAttribute("summaries", summaries);
@@ -95,14 +100,29 @@ public class UIController {
 
         Cookie jwtCookie = new Cookie("auth_token", jwt);
         jwtCookie.setHttpOnly(true);  // This ensures that the cookie is not accessible by JavaScript
-        jwtCookie.setSecure(false);    // Ensures the cookie is only sent over HTTPS (set to true in production)
+        jwtCookie.setSecure(!"local".equals(activeProfile));
         jwtCookie.setPath("/");       // Available to the entire application
-        jwtCookie.setMaxAge(24 * 60 * 60); // 1 day expiration
+        jwtCookie.setMaxAge(60*60); // 1 hour expiration
 
         // Add the cookie to the response
         response.addCookie(jwtCookie);
 
-        return "summary";
+        return "redirect:/ui/summary";
+    }
+
+    @GetMapping("/logout")
+    public String logout(Model model, HttpServletResponse response) {
+        // Clear the JWT cookie
+        Cookie jwtCookie = new Cookie("auth_token", null);
+        jwtCookie.setMaxAge(0);
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setPath("/");
+        response.addCookie(jwtCookie);
+
+        // Optionally invalidate the session
+        SecurityContextHolder.clearContext();
+
+        return "redirect:login";
     }
 }
 

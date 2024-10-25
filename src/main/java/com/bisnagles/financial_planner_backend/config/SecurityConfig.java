@@ -43,6 +43,9 @@ public class SecurityConfig {
     @Autowired
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
     @Bean
     public SecurityFilterChain uiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -50,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/favicon.ico").permitAll()
                         .requestMatchers("/ui/login").permitAll()
+                        .requestMatchers("/ui/logout").permitAll()
                         .requestMatchers("/ui/**").hasRole("USER")
                         .requestMatchers("/").hasRole("USER")
                         .requestMatchers("/api/**").hasAnyRole("USER","ADMIN")
@@ -98,24 +102,16 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+        authenticationManagerBuilder.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();  // Password hashing with BCrypt
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return new CustomUserDetailsService();  // Load user from DB
     }
 
     @Bean

@@ -26,7 +26,7 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(UserDetails userDetails) {
-        long validityInMs = 3600000;
+        long validityInMs = 60*60*1000; //1 hour
 
         List<String> roles = userDetails.getAuthorities()
                 .stream()
