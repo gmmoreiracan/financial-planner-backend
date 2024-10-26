@@ -1,7 +1,55 @@
 <!-- modal.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+<!-- JavaScript Code -->
 <div th:fragment="modal">
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      let transactionId = "";
+      var transactionModal = document.getElementById('transactionModal');
+
+      transactionModal.addEventListener('show.bs.modal', function(event) {
+        var button = event.relatedTarget; // Button that triggered the modal
+        transactionId = button.getAttribute('data-transaction-id'); // Extract transaction ID if available
+
+        if (transactionId) {
+          // Edit existing transaction, load data into modal form
+          fetch(`/api/transactions/${transactionId}`)
+            .then(response => response.json())
+            .then(data => {
+              document.getElementById('date').value = data.date;
+              document.getElementById('id').value = data.id;
+              document.getElementById('amount').value = data.amount;
+              document.getElementById('merchant').value = data.merchant.name;
+              document.getElementById('category').value = data.category.name;
+              document.getElementById('description').value = data.description;
+            });
+        } else {
+          // New transaction, clear the modal form
+          document.getElementById('transactionForm').reset();
+        }
+      });
+
+      var transactionForm = document.getElementById('transactionForm');
+      transactionForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        var formData = new FormData(transactionForm);
+        var url = `/ui/transaction/${transactionId ? 'update' : 'create'}`;
+        var method = 'POST';
+
+        fetch(url, {
+          method: method,
+          body: formData
+        }).then(response => {
+          if (response.ok) {
+            location.reload(); // Reload the page after successful save
+          } else {
+            alert('Failed to save transaction');
+          }
+        });
+      });
+    });
+  </script>
   <!-- Modal -->
   <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -47,53 +95,5 @@
       </div>
     </div>
   </div>
-
-  <!-- JavaScript Code -->
-  <script type="text/javascript">
-    document.addEventListener('DOMContentLoaded', function() {
-      let transactionId = "";
-      var transactionModal = document.getElementById('transactionModal');
-      transactionModal.addEventListener('show.bs.modal', function(event) {
-        var button = event.relatedTarget; // Button that triggered the modal
-        transactionId = button.getAttribute('data-transaction-id'); // Extract transaction ID if available
-
-        if (transactionId) {
-          // Edit existing transaction, load data into modal form
-          fetch(`/api/transactions/${transactionId}`)
-            .then(response => response.json())
-            .then(data => {
-              document.getElementById('date').value = data.date;
-              document.getElementById('id').value = data.id;
-              document.getElementById('amount').value = data.amount;
-              document.getElementById('merchant').value = data.merchant.name;
-              document.getElementById('category').value = data.category.name;
-              document.getElementById('description').value = data.description;
-            });
-        } else {
-          // New transaction, clear the modal form
-          document.getElementById('transactionForm').reset();
-        }
-      });
-
-      var transactionForm = document.getElementById('transactionForm');
-      transactionForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        var formData = new FormData(transactionForm);
-        var url = `/ui/transaction/${transactionId ? 'update' : 'create'}`;
-        var method = 'POST';
-
-        fetch(url, {
-          method: method,
-          body: formData
-        }).then(response => {
-          if (response.ok) {
-            location.reload(); // Reload the page after successful save
-          } else {
-            alert('Failed to save transaction');
-          }
-        });
-      });
-    });
-  </script>
 </div>
 </html>

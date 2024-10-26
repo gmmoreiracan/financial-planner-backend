@@ -44,14 +44,13 @@
    </tr>
    </tbody>
   </table>
-  <!-- Include the modal fragment -->
-  <div th:replace="~{fragments/modal :: modal}"> </div>
-  <div th:replace="~{fragments/delete-modal :: delete-modal}"> </div>
   <div class="text-center">
    <a href="/ui/summary" class="btn btn-secondary mt-4">Back to Summary</a>
   </div>
  </div>
+<!-- Include the modal fragment -->
+<div th:replace="~{fragments/modal :: modal}"> </div>
+<div th:replace="~{fragments/delete-modal :: delete-modal}"> </div>
 </section>
-<!-- Bootstrap JS and dependencies -->
 </body>
 </html>
