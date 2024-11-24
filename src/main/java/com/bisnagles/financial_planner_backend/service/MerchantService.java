@@ -1,7 +1,8 @@
 package com.bisnagles.financial_planner_backend.service;
 
+import com.bisnagles.financial_planner_backend.config.HibernateFilterConfigurer;
 import com.bisnagles.financial_planner_backend.model.Merchant;
-import com.bisnagles.financial_planner_backend.repository.MerchantRepository;
+import com.bisnagles.financial_planner_backend.repository.persistence.MerchantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,19 +13,30 @@ public class MerchantService {
     @Autowired
     private MerchantRepository merchantRepository;
 
+    @Autowired
+    private final HibernateFilterConfigurer hibernateFilterConfigurer;
+
+    public MerchantService(HibernateFilterConfigurer hibernateFilterConfigurer) {
+        this.hibernateFilterConfigurer = hibernateFilterConfigurer;
+    }
+
     public Merchant createMerchant(Merchant merchant) {
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
         return merchantRepository.save(merchant);
     }
 
     public List<Merchant> getAllMerchants() {
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
         return merchantRepository.findAll();
     }
 
     public Optional<Merchant> getMerchantById(Long id) {
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
         return merchantRepository.findById(id);
     }
 
     public List<Merchant> getMerchantsBySimilarName(String name) {
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
         // Step 1: Initial search using full name
         List<Merchant> merchants = merchantRepository.findByNameContainingIgnoreCase(name);
 
@@ -72,23 +84,23 @@ public class MerchantService {
         return searchCombinations(nameParts, start + 1, seenCombinations);
     }
 
-    public Optional<Merchant> getOrCreateMerchantByName(String name) {
-        if(name.isEmpty()){
+    public Optional<Merchant> getOrCreateMerchantByNameWithOwner(String name, Long ownerId) {
+        if(name == null || name.isEmpty()){
             return Optional.empty();
         }
-
-        List<Merchant> merchantList = getMerchantsBySimilarName(name);
-
-        if(merchantList.size() == 1){
-            return Optional.of(merchantList.getFirst());
-        }
-
         Merchant merchant = new Merchant();
         merchant.setName(name);
+        merchant.setOwnerId(ownerId);
 
-        return Optional.of(createMerchant(merchant));
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
+
+        Optional<Merchant> optionalMerchant = merchantRepository.findByNameIgnoreCase(name);
+
+        if(optionalMerchant.isEmpty()){
+            optionalMerchant = Optional.of(createMerchant(merchant));
+        }
+
+        return optionalMerchant;
     }
-
-    // Other account-related methods...
 }
 

@@ -1,16 +1,22 @@
 package com.bisnagles.financial_planner_backend.service;
 
+import com.bisnagles.financial_planner_backend.config.HibernateFilterConfigurer;
 import com.bisnagles.financial_planner_backend.model.Category;
 import com.bisnagles.financial_planner_backend.model.Merchant;
 import com.bisnagles.financial_planner_backend.model.MerchantCategory;
-import com.bisnagles.financial_planner_backend.repository.CategoryRepository;
-import com.bisnagles.financial_planner_backend.repository.MerchantCategoryRepository;
+import com.bisnagles.financial_planner_backend.repository.persistence.CategoryRepository;
+import com.bisnagles.financial_planner_backend.repository.persistence.MerchantCategoryRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaContext;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class CategoryService {
     @Autowired
@@ -18,6 +24,14 @@ public class CategoryService {
 
     @Autowired
     MerchantCategoryRepository merchantCategoryRepository;
+
+    @Autowired
+    private final HibernateFilterConfigurer hibernateFilterConfigurer;
+
+    public CategoryService(HibernateFilterConfigurer hibernateFilterConfigurer) {
+        this.hibernateFilterConfigurer = hibernateFilterConfigurer;
+    }
+
 
     public Category createCategory(Category category) { return categoryRepository.save(category); }
 
@@ -30,26 +44,30 @@ public class CategoryService {
             return Optional.empty();
         }
 
+        log.info("getCategoryByName name: {}",name);
+
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
         // Proceed with querying the database and mapping the result
-        return categoryRepository.findByNameContainingIgnoreCase(name)
-                .flatMap(categories -> categories.isEmpty() ? Optional.empty() : Optional.of(categories.getFirst()));
+        return categoryRepository.findByNameIgnoreCase(name);
     }
 
-    public Optional<Category> getOrCreateCategoryByName(String name){
-        if(name.isEmpty()){
+    public Optional<Category> getOrCreateCategoryByNameWithOwner(String name, Long ownerId){
+        if(name.isEmpty() || ownerId == null){
             return Optional.empty();
-        }
-
-        Optional<Category> optionalCategory = getCategoryByName(name);
-
-        if(optionalCategory.isPresent()){
-            return optionalCategory;
         }
 
         Category category = new Category();
         category.setName(name);
+        category.setOwnerId(ownerId);
 
-        return Optional.of(createCategory(category));
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
+
+        Optional<Category> optionalCategory = getCategoryByName(name);
+
+        if(optionalCategory.isEmpty()){
+            optionalCategory = Optional.of(createCategory(category));
+        }
+        return optionalCategory;
     }
 
     public MerchantCategory addMerchant(Category category, Merchant merchant){

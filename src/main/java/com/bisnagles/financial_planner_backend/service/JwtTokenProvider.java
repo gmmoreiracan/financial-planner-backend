@@ -1,16 +1,17 @@
 package com.bisnagles.financial_planner_backend.service;
 
+import com.bisnagles.financial_planner_backend.model.CustomUserDetails;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -25,7 +26,7 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(CustomUserDetails userDetails) {
         long validityInMs = 60*60*1000; //1 hour
 
         List<String> roles = userDetails.getAuthorities()
@@ -36,6 +37,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .claim("roles", roles)  // Include roles in the JWT
+                .addClaims(Map.of("userId",userDetails.getUserID()))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + validityInMs))
                 .signWith(key,SignatureAlgorithm.HS256)

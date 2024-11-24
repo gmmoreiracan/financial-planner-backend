@@ -11,11 +11,7 @@ import java.time.LocalDate;
 @Setter
 @Getter
 @Entity
-public class Budget {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class Budget extends Auditable{
     @ManyToOne
     @JoinColumn(name = "category_id") // This will create a foreign key in the Transaction table
     @JsonIgnore
@@ -27,6 +23,11 @@ public class Budget {
     private LocalDate startDate;
     private LocalDate endDate;
 
+    @Override
+    protected Long resolveOwnerId() {
+        // Fallback to the ownerId of the associated Category if not already set
+        return (category != null) ? category.getOwnerId() : null;
+    }
     // Getters and setters
 }
 

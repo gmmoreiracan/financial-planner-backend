@@ -11,23 +11,31 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-public class Account {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Account extends Auditable {
 
     private String name;
 
     private String type; // savings, investments, checking, credit
 
+    private String plaidId;
+
     private double balance;
 
     private boolean main;
 
+    @ManyToOne
+    @JoinColumn(name = "item_id")
+    private Item item;
+
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Transaction> transactions;
+
+    @Override
+    protected Long resolveOwnerId() {
+        // Fallback to the ownerId of the associated Item if not already set
+        return (item != null) ? item.getOwnerId() : null;
+    }
 
     // Getters and setters
 }

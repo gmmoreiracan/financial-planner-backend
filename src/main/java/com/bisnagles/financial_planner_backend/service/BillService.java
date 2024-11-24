@@ -3,7 +3,7 @@ package com.bisnagles.financial_planner_backend.service;
 import com.bisnagles.financial_planner_backend.dto.BillRequestDTO;
 import com.bisnagles.financial_planner_backend.model.Account;
 import com.bisnagles.financial_planner_backend.model.Bill;
-import com.bisnagles.financial_planner_backend.repository.BillRepository;
+import com.bisnagles.financial_planner_backend.repository.persistence.BillRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

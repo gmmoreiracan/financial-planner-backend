@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -16,7 +17,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -28,13 +28,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import static org.springframework.security.oauth2.core.oidc.StandardClaimNames.PREFERRED_USERNAME;
+import static org.springframework.security.oauth2.core.oidc.StandardClaimNames.SUB;
 
 
 @SuppressWarnings("SpellCheckingInspection")
@@ -47,9 +45,12 @@ public class SecurityConfig {
     private CustomUserDetailsService customUserDetailsService;
 
     @Bean
+    @Order(4)
     public SecurityFilterChain uiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
+                .securityMatcher("/**")
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/favicon.ico").permitAll()
                         .requestMatchers("/ui/login").permitAll()
@@ -78,12 +79,14 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Order(3)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .securityMatcher("/api/**")
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login").permitAll()
-//                        .requestMatchers("/api/admin/create-admin-user").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")  // Only admins
+                        .requestMatchers("/api/admin/create-admin-user").permitAll()
+                        //.requestMatchers("/api/admin/**").hasRole("ADMIN")  // Only admins
                         .requestMatchers("/api/**").hasAnyRole("USER","ADMIN") // Only users
                         .anyRequest().authenticated()
                 )
@@ -91,6 +94,48 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults())
                 // Configure Bearer token authentication
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                .exceptionHandling(
+                        exceptionHandling -> exceptionHandling.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                )
+                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF (typically for stateless APIs)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No sessions, stateless API
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
+    public SecurityFilterChain plaidFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/api/plaid/webhook/**")
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/plaid/webhook/receive").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(Customizer.withDefaults())
+                .exceptionHandling(
+                        exceptionHandling -> exceptionHandling.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                )
+                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF (typically for stateless APIs)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No sessions, stateless API
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(1)
+    public SecurityFilterChain actuatorFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/actuator/**")
+                .authorizeHttpRequests(auth -> auth
+                                .requestMatchers("/actuator/**").permitAll()
+                                .anyRequest().authenticated()
+                )
+                .httpBasic(Customizer.withDefaults())
                 .exceptionHandling(
                         exceptionHandling -> exceptionHandling.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
@@ -122,7 +167,7 @@ public class SecurityConfig {
     Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter() {
         JwtAuthenticationConverter jwtAuthenticationConverter = new CustomJwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new JwtGrantedAuthorityConverter());
-        jwtAuthenticationConverter.setPrincipalClaimName(PREFERRED_USERNAME);
+        jwtAuthenticationConverter.setPrincipalClaimName(SUB);
         return jwtAuthenticationConverter;
     }
 

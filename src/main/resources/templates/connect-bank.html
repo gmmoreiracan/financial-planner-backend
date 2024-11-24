@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Connect to Bank</title>
+    <!-- Load Plaid Link JavaScript library -->
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+</head>
+<body>
+<section layout:fragment="content">
+    <h1 class="text-center mb-4">Connect to bank</h1>
+    <!-- Responsive Table -->
+    <!-- Button to trigger modal for creating new transactionService -->
+    <button id="link-button" class="btn btn-primary" type="button" th:data-client-id="${clientId}">Connect Your Bank</button>
+    <script th:inline="javascript">
+        // JavaScript function to initialize Plaid Link
+                let button = document.getElementById('link-button');
+                button.addEventListener('click', async function () {
+                    try {
+                        const clientId = button.getAttribute('data-client-id');
+                        // Step 1: Fetch the link token from your backend
+                        const response = await fetch('/api/plaid/link/create', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ clientId: clientId })
+                        });
+                        const data = await response.json();
+
+                        if (!data.linkToken || !data.userId) {
+                            alert('Unable to get link token');
+                            return;
+                        }
+
+                        // Step 2: Initialize Plaid Link
+                        const handler = Plaid.create({
+                            token: data.linkToken,
+                            onSuccess: function (publicToken, metadata) {
+                                // Step 3: Send the public token to your backend for exchange
+                                fetch('/api/plaid/link/exchange-token', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ linkToken: publicToken, userId: data.userId})
+                                })
+                                .then(response => {
+                                    let responseJson = response.json();
+                                    return responseJson;
+                                })
+                                .then(result => {
+                                    alert('Bank account linked successfully!\n\nData: ' + JSON.stringify(result));
+                                    // Optionally, reload the page or update the UI
+                                    location.reload();
+                                })
+                                .catch(error => console.error('Error exchanging token:', error));
+                            },
+                            onExit: function (err, metadata) {
+                                if (err) {
+                                    console.error('Plaid Link exited with error:', err);
+                                }
+                            }
+                        });
+
+                        // Step 4: Open Plaid Link
+                        handler.open();
+                    } catch (error) {
+                        console.error('Error initializing Plaid Link:', error);
+                    }
+                });
+    </script>
+</section>
+</body>
+</html>

@@ -1,4 +1,4 @@
-package com.bisnagles.financial_planner_backend.repository;
+package com.bisnagles.financial_planner_backend.repository.persistence;
 
 
 import com.bisnagles.financial_planner_backend.model.Account;
@@ -17,4 +17,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     @Query("SELECT a FROM Account a WHERE a.main = TRUE")
     Optional<Account> getMainAccount();
+
+    Optional<Account> getAccountByPlaidId(String accountId);
 }

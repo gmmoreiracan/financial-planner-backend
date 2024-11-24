@@ -9,4 +9,5 @@ public class BudgetRequestDTO {
     private String category;
     private double allocatedAmount;
     private double spentAmount;
+    private Long ownerId;
 }

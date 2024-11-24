@@ -1,7 +1,7 @@
 package com.bisnagles.financial_planner_backend.service;
 
 import com.bisnagles.financial_planner_backend.model.WishItem;
-import com.bisnagles.financial_planner_backend.repository.WishItemRepository;
+import com.bisnagles.financial_planner_backend.repository.persistence.WishItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

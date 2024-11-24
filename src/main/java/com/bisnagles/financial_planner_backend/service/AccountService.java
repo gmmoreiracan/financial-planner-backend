@@ -1,7 +1,7 @@
 package com.bisnagles.financial_planner_backend.service;
 
 import com.bisnagles.financial_planner_backend.model.Account;
-import com.bisnagles.financial_planner_backend.repository.AccountRepository;
+import com.bisnagles.financial_planner_backend.repository.persistence.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,6 +40,10 @@ public class AccountService {
         } else {
             return accountRepository.getTotalBalance(accountIds);  // Sum specific accounts
         }
+    }
+
+    public Optional<Account> getAccountByPlaidId(String accountId) {
+        return accountRepository.getAccountByPlaidId(accountId);
     }
 
     // Other account-related methods...

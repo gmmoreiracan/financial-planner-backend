@@ -1,10 +1,11 @@
 package com.bisnagles.financial_planner_backend.service;
 
+import com.bisnagles.financial_planner_backend.config.HibernateFilterConfigurer;
 import com.bisnagles.financial_planner_backend.dto.BudgetRequestDTO;
 import com.bisnagles.financial_planner_backend.dto.BudgetResponse;
 import com.bisnagles.financial_planner_backend.model.Budget;
 import com.bisnagles.financial_planner_backend.model.Category;
-import com.bisnagles.financial_planner_backend.repository.BudgetRepository;
+import com.bisnagles.financial_planner_backend.repository.persistence.BudgetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
@@ -21,13 +22,16 @@ public class BudgetService {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private HibernateFilterConfigurer hibernateFilterConfigurer;
+
     public Budget createBudget(BudgetRequestDTO budgetRequestDTO) {
         String requestCategory = budgetRequestDTO.getCategory();
         if(requestCategory.isEmpty()){
             requestCategory = "PENDING";
         }
 
-        Optional<Category> category = categoryService.getOrCreateCategoryByName(requestCategory);
+        Optional<Category> category = categoryService.getOrCreateCategoryByNameWithOwner(requestCategory, budgetRequestDTO.getOwnerId());
 
         if(category.isEmpty()){
             throw new DataRetrievalFailureException("No categories exist in the database");
@@ -42,6 +46,7 @@ public class BudgetService {
     }
 
     public Budget updateBudget(Budget budget){
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
         return budgetRepository.save(budget);
     }
 
@@ -52,6 +57,7 @@ public class BudgetService {
             // Handle case when category is not found (return an error or empty response)
             return Optional.empty();
         }
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
 
         return budgetRepository.findCurrentBudgetByCategoryId(categoryOpt.get().getId(), date);
     }
@@ -70,6 +76,8 @@ public class BudgetService {
             return Optional.empty();
         }
 
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
+
         LocalDate now = LocalDate.now();
         return budgetRepository.findPreviousBudgetByCategoryId(categoryOpt.get().getId(), now);
     }
@@ -87,10 +95,12 @@ public class BudgetService {
     }
 
     public List<Budget> getAllBudgets() {
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
         return budgetRepository.findAll();
     }
 
     public Optional<Budget> getBudgetById(Long id) {
+        hibernateFilterConfigurer.applyItemOwnershipFilter();
         return budgetRepository.findById(id);
     }
 

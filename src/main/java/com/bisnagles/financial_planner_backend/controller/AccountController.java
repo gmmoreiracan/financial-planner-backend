@@ -36,6 +36,5 @@ public class AccountController {
         return accountService.getTotalBalance(accountIds);
     }
 
-    // Other account-related endpoints...
 }
 

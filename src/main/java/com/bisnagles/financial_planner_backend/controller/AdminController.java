@@ -17,8 +17,8 @@ public class AdminController {
     @PostMapping("/create-admin-user")
     public ResponseEntity<String> createAdminUser(@RequestBody User user) {
         try {
-            userService.createUser(user); // Only allow creating the first admin user
-            return ResponseEntity.ok("Admin user created successfully");
+            User createdUser = userService.createAdminUser(user); // Only allow creating the first admin user
+            return ResponseEntity.ok("Admin user " + createdUser.getUsername() + " created successfully");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(403).body(e.getMessage()); // If admin exists, return a forbidden status
         }
@@ -27,8 +27,8 @@ public class AdminController {
     @PostMapping("/create-user")
     public ResponseEntity<String> createUser(@RequestBody User user) {
         try {
-            userService.createUser(user); // Only allow creating the first admin user
-            return ResponseEntity.ok("User created successfully");
+            User createdUser = userService.createUser(user); // Only allow creating the first admin user
+            return ResponseEntity.ok("User " + createdUser.getUsername() + " created successfully");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(403).body(e.getMessage()); // If admin exists, return a forbidden status
         }

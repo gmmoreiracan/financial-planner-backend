@@ -3,6 +3,7 @@ package com.bisnagles.financial_planner_backend.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.Collection;
 
@@ -27,6 +28,10 @@ public class User {
     private String email;
 
     private String password;
+
+    @OneToMany
+    @Column
+    private Collection<Item> items;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))

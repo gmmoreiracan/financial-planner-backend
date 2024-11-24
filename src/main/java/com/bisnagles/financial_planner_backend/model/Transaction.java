@@ -10,14 +10,15 @@ import java.time.LocalDate;
 @Setter
 @Getter
 @Entity
-public class Transaction {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Transaction extends Auditable{
     private String description;
     private Double amount;
     private LocalDate date;
     private String type; // income, expense, etc.
+
+    private String name;
+
+    private Boolean removed;
 
     @ManyToOne
     @JoinColumn(name = "category_id") // This will create a foreign key in the Transaction table
@@ -27,7 +28,13 @@ public class Transaction {
     @JoinColumn(name = "merchant_id") // This will create a foreign key in the Transaction table
     private Merchant merchant;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
     private Account account;
+
+    @Override
+    protected Long resolveOwnerId() {
+        // Fallback to the ownerId of the associated Account if not already set
+        return (account != null) ? account.getOwnerId() : null;
+    }
 }

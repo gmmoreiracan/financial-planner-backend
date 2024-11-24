@@ -8,8 +8,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @Entity
-
-public class WishItem {
+public class WishItem extends Auditable{
 
     public boolean isPurchased() {
         return isPurchased;
@@ -19,12 +18,14 @@ public class WishItem {
         isPurchased = purchased;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
     private String name;
     private double estimatedCost;
     private boolean isPurchased;
+
+    @Override
+    protected Long resolveOwnerId() {
+        return getOwnerId();
+    }
 
     // Getters and setters
 }
