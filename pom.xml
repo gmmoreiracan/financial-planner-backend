@@ -210,11 +210,6 @@
             <version>RELEASE</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>com.bisnagles</groupId>
-            <artifactId>financial-planner-backend</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
 	<build>
