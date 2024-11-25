@@ -83,7 +83,7 @@ public class PlaidTransactionService {
             try {
                 plaidAccountService.createAccountsForItem(item);
                 syncTransactionsForItem(item);
-                log.info("Transactions syncd for {}", item.toString());
+                log.info("Transactions syncd for {}", item);
             } catch (IOException e) {
                 log.error("syncTransactions error: {}",e.getMessage());
                 throw new RuntimeException(e);
@@ -103,24 +103,37 @@ public class PlaidTransactionService {
     private void saveNewTransactions(TransactionsSyncResponse response, Long ownerId) {
         response.getAdded().forEach(transaction -> {
             Account account = accountService.getAccountByPlaidId(transaction.getAccountId()).orElseThrow(() -> new RuntimeException("Account " + transaction.getAccountId() + " not found"));
-            transactionService.createTransaction(
-                    TransactionRequestDTO.builder()
-                            .date(transaction.getDate())
-                            .description(transaction.getOriginalDescription())
-                            .amount(transaction.getAmount())
-                            .category(
-                                    Optional.ofNullable(transaction.getPersonalFinanceCategory())
-                                            .map(PersonalFinanceCategory::getDetailed)
-                                            .orElse("PENDING"))
-                            .merchant(transaction.getMerchantName())
-                            .ownerId(ownerId)
-                            .accountId(account.getId())
-                            .build()
-            );
+            try {
+                transactionService.createTransaction(
+                        TransactionRequestDTO.builder()
+                                .date(transaction.getDate())
+                                .description(transaction.getOriginalDescription())
+                                .amount(transaction.getAmount())
+                                .category(
+                                        (
+                                                transaction.getPersonalFinanceCategory() != null &&
+                                                transaction.getPersonalFinanceCategory().getDetailed() != null
+                                        )?
+                                                transaction.getPersonalFinanceCategory().getDetailed():(
+                                                    transaction.getPersonalFinanceCategory() != null &&
+                                                    transaction.getPersonalFinanceCategory().getPrimary() != null
+                                                )?transaction.getPersonalFinanceCategory().getPrimary():"PENDING"
+                                )
+                                .merchant(Optional.ofNullable(
+                                        transaction.getMerchantName())
+                                        .filter(merchName -> !merchName.isBlank())
+                                        .orElse("NONE")
+                                )
+                                .ownerId(ownerId)
+                                .accountId(account.getId())
+                                .build()
+                );
+            } catch (Exception e) {
+                log.error("Failed creating transaction:\n{}\n\nStacktrace:\n{}",transaction,e.getStackTrace());
+            }
         });
     }
 
-    // Implements exponential backoff with a maximum wait time
     private void sleepWithExponentialBackoff() {
         int attempt = 0;
         int maxRetries = 3;

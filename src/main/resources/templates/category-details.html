@@ -29,8 +29,8 @@
    <tbody>
    <tr th:each="transaction : ${transactions}">
     <td th:text="${transaction.date}"></td>
-    <td th:text="${transaction.category.name}"></td>
-    <td th:text="${transaction.merchant.name}"></td>
+    <td th:text="${transaction.category?.name}"></td>
+    <td th:text="${transaction.merchant?.name}"></td>
     <td th:text="${#numbers.formatCurrency(transaction.amount)}" class="currency"
         th:classappend="${transaction.amount >= 0} ? 'positive' : 'negative'"></td>
     <td th:text="${transaction.description}"></td>

@@ -32,5 +32,18 @@ public class Item extends Auditable{
         return getOwnerId();
     }
     // Getters and setters
+
+    @Override
+    public String toString() {
+        return "Item{" +
+                "name='" + name + '\'' +
+                ", bankName='" + bankName + '\'' +
+                ", plaidID='" + plaidID + '\'' +
+                ", transactionCursor='" + transactionCursor + '\'' +
+                ", accessToken='" + accessToken + '\'' +
+                ", active=" + active +
+                ", account=" + account +
+                '}';
+    }
 }
 
